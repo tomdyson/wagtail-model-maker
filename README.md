@@ -1,5 +1,9 @@
 # Wagtail Model Maker
 
+LLM-powered Web UI and CLI for stubbing out Wagtail page models
+
+![screenshot](https://github.com/tomdyson/wagtail-model-maker/assets/15543/d29327b5-6732-49f8-95fa-d5ec1ed6aba9)
+
 ## Run the web interface locally
 
 In a virtual environment:
