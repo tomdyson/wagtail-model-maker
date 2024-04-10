@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Wagtail Model Maker</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/default.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <style>
+        th {
+            text-align: left;
+            font-weight: 500;
+        }
+
+        table {
+            border-spacing: 0 0.1em;
+        }
+
+        td {
+            padding-top: 0px;
+        }
+
+        .light-green {
+            color: aquamarine;
+        }
+
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+
+<body class="w-100 avenir black-80 bg-pink">
+    <div id="app" class="mw7 center pa2 black-80">
+        <div>
+            <h1 class="f1 lh-solid mb4 white">
+                <span class="light-blue">Wagtail</span><span class="light-green">Model</span>Maker
+            </h1>
+            <form @submit="formSubmit">
+                <label for="question" class="f4 db mb3">Describe the page you want <span class="white">(<a href="#"
+                            class="link dim white" @click.prevent="populateExample1">prose example </a> /
+                        <a href="#" class="link dim white" @click.prevent="populateExample2">list
+                            example</a>)</span></label>
+                <textarea id="question" class="input-reset lh-copy f4 ba b--black-20 pa2 mb1 db w-100 br2" rows="3"
+                    v-model.lazy="question"></textarea>
+                <input id="submit" class="dim mt3 pointer ph3 pv2 input-reset ba b--black br2 bg-transparent f4 mb3"
+                    type="submit" :value="button_text" />
+            </form>
+            <div class="mt0 f5" v-if="answer">
+                <pre v-html="highlightedAnswer"></pre>
+            </div>
+            <button v-if="answer" @click="copyToClipboard"
+                class="dim mt0 pointer ph3 pv2 input-reset ba b--black br2 bg-transparent f4 mb3">
+                {{ copy_button_text }}
+            </button>
+        </div>
+    </div>
+    <script>
+        var app = new Vue({
+            el: "#app",
+            data: {
+                question: "",
+                answer: "",
+                button_text: "Tell me",
+                copy_button_text: "Copy code",
+                display: false,
+            },
+            computed: {
+                highlightedAnswer() {
+                    return hljs.highlightAuto(this.answer).value;
+                },
+            },
+            methods: {
+                formSubmit(e) {
+                    e.preventDefault();
+                    app.button_text = "Working it out...";
+                    app.answer = "";
+                    api_url = "/api/ask?q=" + app.question;
+                    fetch(api_url)
+                        .then(async function (response) {
+                            let json = await response.json();
+                            let resp = json["response"];
+                            app.answer = resp;
+                            app.button_text = "Tell me";
+                        })
+                        .catch(function (error) {
+                            console.log(error);
+                        });
+                },
+                toggleText() {
+                    this.display = !this.display;
+                },
+                copyToClipboard() {
+                    navigator.clipboard.writeText(this.answer);
+                    app.copy_button_text = "Copied!";
+                },
+                populateExample1() {
+                    this.question = "A blog page with a title, a rich text body field called 'description' (optional), a hero image called 'lead image' (required), and a date field called 'launch date'.";
+                    var textarea = document.getElementById("question");
+                    textarea.rows = 2;
+                },
+                populateExample2() {
+                    this.question = "Blog Page:\n- Title (CharField)\n- Hero Image (ImageField, optional)\n- Body (RichTextField)\n- Author (PageField, link to Author Page)\n- Date Published (DateField)\n- Tags (TagField)\n- Excerpt (TextField)\n\nAuthor Page:\n- Name (CharField)\n- Bio (RichTextField)\n- Profile Picture (ImageField)";
+                    var textarea = document.getElementById("question");
+                    textarea.rows = 13;
+                },
+            },
+        });
+    </script>
+</body>
+
+</html>
