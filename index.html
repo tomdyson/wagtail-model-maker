@@ -53,7 +53,11 @@
                     v-model.lazy="question"></textarea>
                 <input id="submit" class="dim mt3 pointer ph3 pv2 input-reset ba b--black br2 bg-transparent f4 mb3"
                     type="submit" :value="button_text" />
+                <a v-if="question" @click="refineDescription"
+                    class="dim mt0 pointer ph3 pv2 input-reset bg-transparent f4 mb3">
+                    {{ refine_button_text }}</a>
             </form>
+
             <div class="mt0 f5" v-if="answer">
                 <pre v-html="highlightedAnswer"></pre>
             </div>
@@ -73,6 +77,7 @@
                 cost: "",
                 button_text: "Tell me",
                 copy_button_text: "Copy code",
+                refine_button_text: "Refine my description",
                 display: false,
             },
             computed: {
@@ -115,6 +120,21 @@
                     this.question = "Blog Page:\n- Title (CharField)\n- Hero Image (ImageField, optional)\n- Body (RichTextField)\n- Author (PageField, link to Author Page)\n- Date Published (DateField)\n- Tags (TagField)\n- Excerpt (TextField)\n\nAuthor Page:\n- Name (CharField)\n- Bio (RichTextField)\n- Profile Picture (ImageField)";
                     var textarea = document.getElementById("question");
                     textarea.rows = 13;
+                },
+                refineDescription() {
+                    app.refine_button_text = "Refining...";
+                    api_url = "/api/refine?q=" + app.question;
+                    fetch(api_url)
+                        .then(async function (response) {
+                            let json = await response.json();
+                            let resp = json["description"];
+                            app.question = resp;
+                            app.cost = json["cost"];
+                            app.refine_button_text = "Refine this description";
+                        })
+                        .catch(function (error) {
+                            console.log(error);
+                        });
                 },
             },
         });

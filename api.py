@@ -4,7 +4,7 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.responses import FileResponse
 
-from modelmaker import format_python, make_model, usage_cost
+from modelmaker import format_python, make_model, suggest_improvements, usage_cost
 
 app = FastAPI()
 
@@ -14,6 +14,12 @@ async def ask(q: Union[str, None] = None):
     model_code, usage = make_model(q)
     formatted_code = format_python(model_code)
     return {"answer": formatted_code, "cost": usage_cost(usage)}
+
+
+@app.get("/api/refine")
+async def refine(q: Union[str, None] = None):
+    refined_description, usage = suggest_improvements(q)
+    return {"description": refined_description, "cost": usage_cost(usage)}
 
 
 @app.get("/")
