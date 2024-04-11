@@ -1,5 +1,4 @@
 import argparse
-import os
 import re
 import subprocess
 
@@ -141,7 +140,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.refine:
-        improvements = suggest_improvements(args.text)
+        improvements, usage = suggest_improvements(args.text)
         print(improvements)
     else:
         model_code, usage = make_model(args.text)

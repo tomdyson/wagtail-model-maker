@@ -9,7 +9,7 @@ LLM-powered Web UI and CLI for stubbing out Wagtail page models
 In a virtual environment:
 
 ```bash
-export CLAUDE_API_KEY=your_api_key
+export ANTHROPIC_API_KEY=your_api_key
 pip install -r requirements.txt
 python api.py
 ```
@@ -18,7 +18,7 @@ or with Docker:
 
 ```bash
 docker build -t model_maker .
-docker run --env CLAUDE_API_KEY=your_api_key -p 8000:8000 model_maker
+docker run --env ANTHROPIC_API_KEY=your_api_key -p 8000:8000 model_maker
 ```
 
 ## CLI usage
