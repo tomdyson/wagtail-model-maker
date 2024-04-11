@@ -3,7 +3,7 @@ import os
 import re
 import subprocess
 
-import llm
+import anthropic
 
 CLAUDE_API_KEY = os.getenv("CLAUDE_API_KEY")
 
@@ -83,13 +83,41 @@ def extract_code(response):
         return response.strip()
 
 
+def usage_cost(usage):
+    input_token_cost = 15 / 1000000  # https://www.anthropic.com/api
+    output_token_cost = 75 / 1000000
+    cost = (usage["input_tokens"] * input_token_cost) + (
+        usage["output_tokens"] * output_token_cost
+    )
+    return f"${cost:.3f}"
+
+
+def ask_claude(description, system_prompt):
+    # Claude API wrapper
+    resp = anthropic.Anthropic().messages.create(
+        model="claude-3-opus-20240229",
+        temperature=0,
+        system=system_prompt,
+        max_tokens=2048,
+        messages=[{"role": "user", "content": description}],
+    )
+    answer = resp.content[0].text
+    usage = {
+        "input_tokens": resp.usage.input_tokens,
+        "output_tokens": resp.usage.output_tokens,
+    }
+    return answer, usage
+
+
 def make_model(description):
-    model = llm.get_model(
-        "claude-3-opus"
-    )  # claude-3-sonnet or claude-3-haiku or claude-3-opus
-    model.key = CLAUDE_API_KEY
-    response = model.prompt(description, system=SYSTEM_PROMPT, temperature=0)
-    return extract_code(response.text())
+    code, usage = ask_claude(description, SYSTEM_PROMPT)
+    code = extract_code(code)
+    return code, usage
+
+
+def suggest_improvements(description):
+    improvements, usage = ask_claude(description, REFINE_PROMPT)
+    return improvements, usage
 
 
 def format_python(code):
@@ -99,13 +127,6 @@ def format_python(code):
         )
     except subprocess.CalledProcessError:
         return code
-
-
-def suggest_improvements(description):
-    model = llm.get_model("claude-3-opus")
-    model.key = CLAUDE_API_KEY
-    response = model.prompt(description, system=REFINE_PROMPT, temperature=0)
-    return response.text()
 
 
 if __name__ == "__main__":
@@ -125,6 +146,7 @@ if __name__ == "__main__":
         improvements = suggest_improvements(args.text)
         print(improvements)
     else:
-        model_code = make_model(args.text)
+        model_code, usage = make_model(args.text)
         formatted_code = format_python(model_code)
-        print(formatted_code)
+        cost = usage_cost(usage)
+        print(formatted_code, cost, sep="\n\n")

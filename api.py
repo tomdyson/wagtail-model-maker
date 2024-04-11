@@ -4,16 +4,16 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.responses import FileResponse
 
-from modelmaker import format_python, make_model
+from modelmaker import format_python, make_model, usage_cost
 
 app = FastAPI()
 
 
 @app.get("/api/ask")
 async def ask(q: Union[str, None] = None):
-    model_code = make_model(q)
+    model_code, usage = make_model(q)
     formatted_code = format_python(model_code)
-    return {"response": formatted_code}
+    return {"answer": formatted_code, "cost": usage_cost(usage)}
 
 
 @app.get("/")

@@ -58,6 +58,7 @@
                 class="dim mt0 pointer ph3 pv2 input-reset ba b--black br2 bg-transparent f4 mb3">
                 {{ copy_button_text }}
             </button>
+            <p class="mt0 f5 i" v-if="cost">API cost: {{ cost }}</p>
         </div>
     </div>
     <script>
@@ -66,6 +67,7 @@
             data: {
                 question: "",
                 answer: "",
+                cost: "",
                 button_text: "Tell me",
                 copy_button_text: "Copy code",
                 display: false,
@@ -80,12 +82,14 @@
                     e.preventDefault();
                     app.button_text = "Working it out...";
                     app.answer = "";
+                    app.cost = "";
                     api_url = "/api/ask?q=" + app.question;
                     fetch(api_url)
                         .then(async function (response) {
                             let json = await response.json();
-                            let resp = json["response"];
+                            let resp = json["answer"];
                             app.answer = resp;
+                            app.cost = json["cost"];
                             app.button_text = "Tell me";
                         })
                         .catch(function (error) {
