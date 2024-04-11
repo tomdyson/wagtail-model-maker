@@ -55,8 +55,11 @@ REFINE_PROMPT = """
 You are a tool which helps Wagtail developers write their page models. 
 They describe the structure of their pages in a declarative way, and 
 another tool will generate the code for them. Respond to their description 
-by suggesting ways they can improve the text description to help the code 
-generator produce better results.
+with a more precise version which will help the code generator produce better results.
+Don't include title or slug fields, as Wagtail pages already have them. Don't explain 
+your suggestions, just provide a more detailed description. Include suggested constraints 
+(e.g. 'required', 'optional') and field types (e.g. 'date', 'rich text'). Use natural 
+language for the field types, not the Django or Wagtail model field names.
 """
 
 EXAMPLE_PROMPT = """
