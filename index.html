@@ -42,10 +42,13 @@
                 <span class="light-blue">Wagtail</span><span class="light-green">Model</span>Maker
             </h1>
             <form @submit="formSubmit">
-                <label for="question" class="f4 db mb3">Describe the page you want <span class="white">(<a href="#"
-                            class="link dim white" @click.prevent="populateExample1">prose example </a> /
+                <label for="question" class="f4 db mb3">Describe the page you want
+                    <span class="white">
+                        (<a href="#" class="link dim white" @click.prevent="populateExample1">prose example </a> /
                         <a href="#" class="link dim white" @click.prevent="populateExample2">list
-                            example</a>)</span></label>
+                            example</a>)
+                    </span>
+                </label>
                 <textarea id="question" class="input-reset lh-copy f4 ba b--black-20 pa2 mb1 db w-100 br2" rows="3"
                     v-model.lazy="question"></textarea>
                 <input id="submit" class="dim mt3 pointer ph3 pv2 input-reset ba b--black br2 bg-transparent f4 mb3"

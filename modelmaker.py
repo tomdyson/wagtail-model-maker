@@ -5,8 +5,6 @@ import subprocess
 
 import anthropic
 
-CLAUDE_API_KEY = os.getenv("CLAUDE_API_KEY")
-
 SYSTEM_PROMPT = """
 You are a tool which helps Wagtail developers write their page models. 
 They describe the structure of their pages in a declarative way, and 
