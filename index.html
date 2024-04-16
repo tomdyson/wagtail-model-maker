@@ -32,6 +32,19 @@
             padding: 10px;
             border-radius: 4px;
         }
+
+        .dropzone {
+            border: 2px dashed #ccc;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .thumbnail {
+            max-width: 300px;
+            max-height: 300px;
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 
@@ -50,12 +63,18 @@
                     </span>
                 </label>
                 <textarea id="question" class="input-reset lh-copy f4 ba b--black-20 pa2 mb1 db w-100 br2" rows="3"
-                    v-model.lazy="question"></textarea>
+                    v-model="question"></textarea>
+                <div id="dropzone" @dragover.prevent @drop.prevent="handleDrop" class="dropzone mt2">
+                    <img v-if="thumbnail" :src="thumbnail" class="thumbnail" />
+                    <span v-else>Drop an image here</span>
+                </div>
                 <input id="submit" class="dim mt3 pointer ph3 pv2 input-reset ba b--black br2 bg-transparent f4 mb3"
                     type="submit" :value="button_text" />
                 <a v-if="question" @click="refineDescription"
                     class="dim mt0 pointer ph3 pv2 input-reset bg-transparent f4 mb3">
                     {{ refine_button_text }}</a>
+
+                <input type="file" ref="fileInput" style="display: none" @change="handleFileInput" />
             </form>
 
             <div class="mt0 f5" v-if="answer">
@@ -76,9 +95,12 @@
                 answer: "",
                 cost: "",
                 button_text: "Tell me",
+                thumbnail: null,
                 copy_button_text: "Copy code",
                 refine_button_text: "Refine my description",
                 display: false,
+                imageFile: null,
+                formAction: '/api/ask',
             },
             computed: {
                 highlightedAnswer() {
@@ -91,14 +113,27 @@
                     app.button_text = "Working it out...";
                     app.answer = "";
                     app.cost = "";
-                    api_url = "/api/ask?q=" + app.question;
-                    fetch(api_url)
+
+                    const formData = new FormData();
+
+                    if (app.imageFile) {
+                        formData.append('screenshot', app.imageFile);
+                    } else {
+                        formData.append('q', app.question);
+                    }
+
+                    fetch(app.formAction, {
+                        method: 'POST',
+                        body: formData,
+                    })
                         .then(async function (response) {
                             let json = await response.json();
                             let resp = json["answer"];
                             app.answer = resp;
                             app.cost = json["cost"];
                             app.button_text = "Tell me";
+                            // app.thumbnail = null;
+                            app.imageFile = null;
                         })
                         .catch(function (error) {
                             console.log(error);
@@ -110,6 +145,28 @@
                 copyToClipboard() {
                     navigator.clipboard.writeText(this.answer);
                     app.copy_button_text = "Copied!";
+                },
+                handleDrop(event) {
+                    const file = event.dataTransfer.files[0];
+                    this.handleFile(file);
+                },
+                handleFileInput(event) {
+                    const file = event.target.files[0];
+                    this.handleFile(file);
+                },
+                handleFile(file) {
+                    if (file && file.type.startsWith('image/')) {
+                        this.imageFile = file;
+                        this.formAction = '/api/ask_image';
+
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
+                            this.thumbnail = event.target.result;
+                        };
+                        reader.readAsDataURL(file);
+                    } else {
+                        alert('Please drop a valid image file.');
+                    }
                 },
                 populateExample1() {
                     this.question = "A blog page with a title, a rich text body field called 'description' (optional), a hero image called 'lead image' (required), and a date field called 'launch date'.";
