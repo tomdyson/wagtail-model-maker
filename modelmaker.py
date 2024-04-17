@@ -1,5 +1,6 @@
 import argparse
 import base64
+import os
 import re
 import subprocess
 
@@ -118,12 +119,9 @@ def extract_code(response):
     # Regular expression pattern to match markdown code blocks with language name
     pattern = r"```(?:python)?(.*?)```"
 
-    # Search for the markdown code block in the response
-    match = re.search(pattern, response, re.DOTALL)
-
-    if match:
+    if match := re.search(pattern, response, re.DOTALL):
         # If a markdown code block is found, return its contents without the language name
-        return match.group(1).strip()
+        return match[1].strip()
     else:
         # If no markdown code block is found, return the whole response
         return response.strip()
@@ -185,6 +183,8 @@ def ask_claude_image(image_path, image_prompt):
         "input_tokens": resp.usage.input_tokens,
         "output_tokens": resp.usage.output_tokens,
     }
+    # delete image file
+    os.remove(image_path)
     return answer, usage
 
 
