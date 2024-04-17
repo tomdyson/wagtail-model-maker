@@ -64,9 +64,10 @@
                 </label>
                 <textarea id="question" class="input-reset lh-copy f4 ba b--black-20 pa2 mb1 db w-100 br2" rows="3"
                     v-model="question"></textarea>
-                <div id="dropzone" @dragover.prevent @drop.prevent="handleDrop" class="dropzone mt2">
+                <div id="dropzone" @dragover.prevent @drop.prevent="handleDrop"
+                    class="dropzone mt2 lh-copy f4 bg-light-pink br2">
                     <img v-if="thumbnail" :src="thumbnail" class="thumbnail" />
-                    <span v-else>Drop an image here</span>
+                    <span v-else>or drop a screenshot here</span>
                 </div>
                 <input id="submit" class="dim mt3 pointer ph3 pv2 input-reset ba b--black br2 bg-transparent f4 mb3"
                     type="submit" :value="button_text" />
