@@ -2,8 +2,9 @@ import uuid
 from typing import Union
 
 import uvicorn
-from fastapi import FastAPI, File, UploadFile
+from fastapi import FastAPI, File, Form, UploadFile
 from fastapi.responses import FileResponse
+from pydantic import BaseModel
 
 from modelmaker import (
     format_python,
@@ -16,8 +17,13 @@ from modelmaker import (
 app = FastAPI()
 
 
-@app.get("/api/ask")
-async def ask(q: Union[str, None] = None):
+class Question(BaseModel):
+    q: str
+
+
+@app.post("/api/ask")
+async def ask(q: str = Form(...)):
+    print(q)
     model_code, usage = make_model(q)
     formatted_code = format_python(model_code)
     return {"answer": formatted_code, "cost": usage_cost(usage)}

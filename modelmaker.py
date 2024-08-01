@@ -5,6 +5,9 @@ import re
 import subprocess
 
 import anthropic
+from openai import OpenAI
+
+API_PROVIDER = "anthropic"
 
 SYSTEM_PROMPT = """
 You are a tool which helps Wagtail developers write their page models. 
@@ -128,8 +131,8 @@ def extract_code(response):
 
 
 def usage_cost(usage):
-    input_token_cost = 15 / 1000000  # https://www.anthropic.com/api
-    output_token_cost = 75 / 1000000
+    input_token_cost = 3 / 1000000  # https://www.anthropic.com/api
+    output_token_cost = 15 / 1000000
     cost = (usage["input_tokens"] * input_token_cost) + (
         usage["output_tokens"] * output_token_cost
     )
@@ -139,7 +142,7 @@ def usage_cost(usage):
 def ask_claude(description, system_prompt):
     # Claude API wrapper
     resp = anthropic.Anthropic().messages.create(
-        model="claude-3-opus-20240229",
+        model="claude-3-5-sonnet-20240620", # claude-3-5-sonnet-20240620 or claude-3-opus-20240229
         temperature=0,
         system=system_prompt,
         max_tokens=2048,
@@ -149,6 +152,25 @@ def ask_claude(description, system_prompt):
     usage = {
         "input_tokens": resp.usage.input_tokens,
         "output_tokens": resp.usage.output_tokens,
+    }
+    return answer, usage
+
+
+def ask_openai(description, system_prompt):
+    print("OpenAI")
+    client = OpenAI()
+    resp = client.chat.completions.create(
+        model="gpt-4o",
+        temperature=0,
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": description},
+        ],
+    )
+    answer = resp.choices[0].message.content
+    usage = {
+        "input_tokens": resp.usage.prompt_tokens,
+        "output_tokens": resp.usage.completion_tokens,
     }
     return answer, usage
 
@@ -188,8 +210,17 @@ def ask_claude_image(image_path, image_prompt):
     return answer, usage
 
 
-def make_model(description):
-    code, usage = ask_claude(description, SYSTEM_PROMPT)
+# def make_model(description):
+#     code, usage = ask_claude(description, SYSTEM_PROMPT)
+#     code = extract_code(code)
+#     return code, usage
+
+
+def make_model(description, api=API_PROVIDER):
+    if api == "anthropic":
+        code, usage = ask_claude(description, SYSTEM_PROMPT)
+    elif api == "openai":
+        code, usage = ask_openai(description, SYSTEM_PROMPT)
     code = extract_code(code)
     return code, usage
 
@@ -200,8 +231,11 @@ def make_model_from_image(image_path):
     return code, usage
 
 
-def suggest_improvements(description):
-    improvements, usage = ask_claude_image(description, REFINE_PROMPT)
+def suggest_improvements(description, api=API_PROVIDER):
+    if api == "anthropic":
+        improvements, usage = ask_claude(description, REFINE_PROMPT)
+    elif api == "openai":
+        improvements, usage = ask_openai(description, REFINE_PROMPT)
     return improvements, usage
 
 
